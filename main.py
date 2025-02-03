@@ -47,7 +47,7 @@ def main():
         
         #Get audio
         temp_audio_folder = "temp_audios"
-        audio_bucket_name = "audios-homero"
+        audio_bucket_name = "audios-tts"
         audio_object_name = f"{video_name}.mp3"
 
         audio_file_location = minio_file_getter.get_file_temp_folder(temp_audio_folder,audio_object_name,audio_bucket_name)
@@ -84,8 +84,9 @@ def main():
             start_time = subtitle["start"]
             end_time = subtitle["end"]
 
-            font = "resources/fonts/p5hatty.ttf"
-            font_size = 100
+            font = "resources/fonts/TikTokDisplay-Bold.ttf"
+            font_size = 60
+            word = word.upper()
             sub = Subtitle(word,font,font_size,"white","black",4,"center","caption", (rendered_video.size[0]-font_size,None), (20,10))
             
             print("Caca", rendered_video.size[1])
