@@ -23,6 +23,8 @@
 *.vob
 *.mxf
 *.ogg
+*.gif
+
 
 
 #Ignore Json files
@@ -57,6 +59,8 @@
 **/*.mxf
 **/*.ogg
 **/*.json
+**/*.gif
+
 
 **/*__pycache__
 **/*.tmp.driveupload

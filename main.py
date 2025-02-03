@@ -3,6 +3,8 @@ import os
 import json
 import random
 import logging
+import ast
+
 from audio.audio import Audio
 from subtitles.subtitle import Subtitle
 from image.image import Image
@@ -10,6 +12,12 @@ from file_getter.minio_file_getter import MinioFileGetter
 from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
 from kafka.consumer import create_consumer
+from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_json
+
+from gif_searcher.tenor_searcher import TenorSearcher
+from gif_searcher.giphy_searcher import GiphySearcher
+from utils.utils import get_keywords
+
 from settings import ROOT_DIR
 
 # Set up logging
@@ -78,9 +86,13 @@ def main():
         with open(subtitle_file_location, "r") as openfile:
             data = json.load(openfile)
         
+        script = ""
+
+
         for subtitle in data:
             
             word = subtitle["word"]
+            script += f" {word}"
             start_time = subtitle["start"]
             end_time = subtitle["end"]
 
@@ -89,13 +101,75 @@ def main():
             word = word.upper()
             sub = Subtitle(word,font,font_size,"white","black",4,"center","caption", (rendered_video.size[0]-font_size,None), (20,10))
             
-            print("Caca", rendered_video.size[1])
             rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, rendered_video.size[1])
             clips.append(rendered_subtitle)
 
+        keywords = extract_keywords(script)
+        
+        every_json_word = []
+        gif_searcher = TenorSearcher()
+
+        new_keywords = str([word[0] for word in keywords])
 
 
+        better_keywords = get_keywords(new_keywords)
 
+        better_keywords = ast.literal_eval(better_keywords)
+
+        list_keywords = []
+
+        current_word = ""
+        for char in better_keywords:
+            
+            if char != "[" or char != "," or char != "]":
+                current_word += char
+            else:
+                list_keywords.append(current_word)
+                current_word = ""
+
+        print(list_keywords)
+        
+        for keyword,score in keywords:
+            gif_url = gif_searcher.search_gif(keyword)
+            if gif_url:
+
+                gif_location = f"temp_gifs/{keyword}.gif"
+                gif_searcher.download_gif(gif_url, gif_location)
+                #resize_gif(gif_url, rendered_video.size[0],rendered_video.size[1], gif_location)                
+                json_word = find_keyword_in_json(data,keyword)
+                
+                every_json_word.append((json_word,gif_location))
+                print("every json:", every_json_word)
+                sorted_json = sorted(every_json_word, key=lambda x: x[0]['start'])
+        
+            else:
+                print(f"No gif found for: {keyword}")
+        
+        for index, data in enumerate(sorted_json):
+
+            current_word = data[0]
+            
+
+            if index +1 < len(sorted_json): 
+                next_word = sorted_json[index+1][0]
+            else:
+                next_word = None 
+
+            gif_video = video_director.build_gif(data[1], current_word["word"])
+            
+            gif_start_time = current_word["start"]
+            
+            if next_word is not None:
+                gif_end_time = next_word["end"]
+            else:
+                gif_end_time = current_word["end"] +3
+
+            if (gif_end_time - gif_start_time) > 3:
+                gif_end_time = gif_start_time +3
+
+            gifclip = video_creator.render_gif(gif_video, gif_start_time, gif_end_time, rendered_video.size[1])
+            clips.append(gifclip)
+        
         video_creator.render_final_clip(video_name, clips, audios)
         
         bucket_name = "videos-homero"
@@ -104,11 +178,6 @@ def main():
         print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
 
         minio_file_getter.upload_file(bucket_name, video_name,video_path)
-
-
-
-
-
 
 
 if __name__ == "__main__":

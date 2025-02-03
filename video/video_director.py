@@ -17,3 +17,8 @@ class VideoDirector():
     def build_gameplay(video_path:str, name:str):
         video_builder = VideoBuilder(video_path, name)
         return video_builder.build()
+    
+    @staticmethod
+    def build_gif(video_path:str, name:str):
+        video_builder = VideoBuilder(video_path, name)
+        return video_builder.build()
