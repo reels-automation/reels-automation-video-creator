@@ -93,3 +93,8 @@ Instrucciones adicionales:
             """
     
     return generate(prompt)
+
+def clean_filename(filename):
+    filename = re.sub(r'[<>:"/\\|?*,()\[\]]', ' ', filename)
+    filename = ' '.join(filename.split())
+    return filename

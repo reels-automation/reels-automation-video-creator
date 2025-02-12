@@ -20,7 +20,8 @@ class TenorSearcher(ISearcher):
 
         if response.status_code == 200:
             gif = json.loads(response.content)
-            return gif["results"][0]["media_formats"]["gif"]["url"]
+            if gif and "results" in gif and len(gif["results"]) > 0:
+                return gif["results"][0]["media_formats"]["gif"]["url"]
         
-        return None
+        return None 
 

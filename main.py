@@ -4,6 +4,7 @@ import json
 import random
 import logging
 import ast
+import re
 
 from audio.audio import Audio
 from subtitles.subtitle import Subtitle
@@ -16,7 +17,7 @@ from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_j
 
 from gif_searcher.tenor_searcher import TenorSearcher
 from gif_searcher.giphy_searcher import GiphySearcher
-from utils.utils import get_keywords
+from utils.utils import get_keywords, clean_filename
 
 from settings import ROOT_DIR
 
@@ -29,6 +30,7 @@ def main():
     video_director = VideoDirector()
     minio_file_getter = MinioFileGetter()
     video_creator = MoviePyVideoCreator()
+    HAS_GIFS = False
 
     while True:
         consumer = Application(broker_address="localhost:9092", loglevel="DEBUG")
@@ -104,71 +106,50 @@ def main():
             rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, rendered_video.size[1])
             clips.append(rendered_subtitle)
 
-        keywords = extract_keywords(script)
-        
-        every_json_word = []
-        gif_searcher = TenorSearcher()
+        #KEYWORDS SEARCHER
 
-        new_keywords = str([word[0] for word in keywords])
+        if HAS_GIFS:
+
+            keywords = extract_keywords(script)
+            gif_searcher = TenorSearcher()
+
+            new_keywords = str([word[0] for word in keywords])
 
 
-        better_keywords = get_keywords(new_keywords)
+            better_keywords = get_keywords(new_keywords)
 
-        better_keywords = ast.literal_eval(better_keywords)
+            list_keywords = []
 
-        list_keywords = []
-
-        current_word = ""
-        for char in better_keywords:
+            current_word = ""
             
-            if char != "[" or char != "," or char != "]":
-                current_word += char
-            else:
-                list_keywords.append(current_word)
-                current_word = ""
 
-        print(list_keywords)
-        
-        for keyword,score in keywords:
-            gif_url = gif_searcher.search_gif(keyword)
-            if gif_url:
-
-                gif_location = f"temp_gifs/{keyword}.gif"
-                gif_searcher.download_gif(gif_url, gif_location)
-                #resize_gif(gif_url, rendered_video.size[0],rendered_video.size[1], gif_location)                
-                json_word = find_keyword_in_json(data,keyword)
+            for char in better_keywords:
+                print("Char , ", char)
                 
-                every_json_word.append((json_word,gif_location))
-                print("every json:", every_json_word)
-                sorted_json = sorted(every_json_word, key=lambda x: x[0]['start'])
-        
-            else:
-                print(f"No gif found for: {keyword}")
-        
-        for index, data in enumerate(sorted_json):
+                if char != "[" and char != "," and char != "]":
+                    current_word += char
+                else:
+                    cleaned_word = clean_filename(current_word)
+                    list_keywords.append(cleaned_word)
+                    current_word = ""
 
-            current_word = data[0]
-            
+                    
+            gif_start_time = 0
+            for index , keyword in enumerate(list_keywords):
+                
+                gif_url = gif_searcher.search_gif(keyword)
+                if gif_url:
 
-            if index +1 < len(sorted_json): 
-                next_word = sorted_json[index+1][0]
-            else:
-                next_word = None 
+                    gif_location = f"temp_gifs/{keyword}.gif"
+                    gif_searcher.download_gif(gif_url, gif_location)
+                    gif_video = video_director.build_gif(gif_location, keyword)
+                    gif_end_time = gif_start_time + 3
+                    gifclip = video_creator.render_gif(gif_video, gif_start_time, gif_end_time, rendered_video.size[1])
+                    clips.append(gifclip)
+                    gif_start_time = gif_end_time + 6
 
-            gif_video = video_director.build_gif(data[1], current_word["word"])
-            
-            gif_start_time = current_word["start"]
-            
-            if next_word is not None:
-                gif_end_time = next_word["end"]
-            else:
-                gif_end_time = current_word["end"] +3
-
-            if (gif_end_time - gif_start_time) > 3:
-                gif_end_time = gif_start_time +3
-
-            gifclip = video_creator.render_gif(gif_video, gif_start_time, gif_end_time, rendered_video.size[1])
-            clips.append(gifclip)
+                else:
+                    print(f"No gif found for: {keyword}")
         
         video_creator.render_final_clip(video_name, clips, audios)
         
