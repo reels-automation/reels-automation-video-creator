@@ -43,7 +43,7 @@ def main():
         temp_gameplay_folder = "temp_gameplay"
         gameplay_bucket_name = "gameplays"
         
-        list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4", "beni-survivors.mp4",
+        list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4", "Fall Guys 1.mp4", "Fall Guys 2.mp4",
                           "clash-vertical1.mp4", "clash-vertical2.mp4", "Cuphead324x574.mp4", "dbd.mp4",
                             "flappy-ai.mp4", "fortnite-goga.mp4", "gettingoverit.mp4", "gta.mp4", "subway.mp4","subway2.mp4","subway3.mp4"]
 
