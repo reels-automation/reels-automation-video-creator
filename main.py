@@ -3,6 +3,7 @@ import os
 import json
 import random
 import logging
+import requests
 import ast
 import re
 
@@ -159,6 +160,15 @@ def main():
         print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
 
         minio_file_getter.upload_file(bucket_name, video_name,video_path)
+
+        url = "http://localhost:5000/add-video"
+        data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False}
+        headers = {'Content-Type': 'application/json'} 
+        
+        response = requests.post(url, data=json.dumps(data), headers= headers)
+        print("Status Code:", response.status_code)
+        print("Resposne, ", response.json())
+
 
 
 if __name__ == "__main__":
