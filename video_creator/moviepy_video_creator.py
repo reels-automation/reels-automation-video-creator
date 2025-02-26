@@ -1,9 +1,11 @@
+import numpy as np
 from moviepy import *
 from video.video import Video
 from audio.audio import Audio
 from image.image import Image
 from subtitles.subtitle import Subtitle
 from video_creator.i_video_creator import IVideoCreator
+
 
 class MoviePyVideoCreator(IVideoCreator):
 
@@ -50,8 +52,7 @@ class MoviePyVideoCreator(IVideoCreator):
         duration = end_time - start_time
         movie_py_subtitle = movie_py_subtitle.with_duration(duration).with_start(start_time)
         movie_py_subtitle = movie_py_subtitle.with_position(("center", video_height // 2))
-
-
+        
         return movie_py_subtitle
     
     def render_image(self, image:Image, resize_factor:int, duration:int):

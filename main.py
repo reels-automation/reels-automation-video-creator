@@ -25,6 +25,25 @@ from settings import ROOT_DIR
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def get_subtitles(subtitles_json:dict, video_width:int, video_height:int, video_creator:MoviePyVideoCreator, clips:list):
+    """Gets the subtitles from a json file
+
+    Args:
+        subtitles_json (dict): The json where the subtitles are located
+        video_width (int): The width of the background video
+        video_height (int): The height of the background video
+        video_creator (MoviePyVideoCreator): Instance of the video creator class
+        clips (list): List of clips to append the rendered subtitles
+    """
+    for subtitle in subtitles_json:        
+            word = subtitle["word"].upper()
+            start_time = subtitle["start"]
+            end_time = subtitle["end"]
+            subtitle_director = SubtitleDirector()
+            highligthed_word_percentage = 30
+            sub = subtitle_director.build_random_subtitle(word,video_width,highligthed_word_percentage)
+            rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, video_height)
+            clips.append(rendered_subtitle)
 
 def main():
     
@@ -90,32 +109,10 @@ def main():
             data = json.load(openfile)
         
         script = ""
+        video_width = rendered_video.size[0]
+        video_heigth = rendered_video.size[1]
+        get_subtitles(data, video_width, video_heigth, video_creator, clips)
 
-
-        for subtitle in data:
-            
-            word = subtitle["word"]
-            script += f" {word}"
-            start_time = subtitle["start"]
-            end_time = subtitle["end"]
-
-            font = "resources/fonts/TikTokDisplay-Bold.ttf"
-            font_size = 60
-            word = word.upper()
-            size = (rendered_video.size[0]-font_size,None)
-
-            random_number = random.randint(1,10)
-            subtitle_director = SubtitleDirector()
-
-            if random_number == 2:        
-                sub = subtitle_director.build_highlight_subtitle(word,size)
-            else:
-                sub = subtitle_director.build_normal_subtitle(word,size)
-                        
-            rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, rendered_video.size[1])
-            clips.append(rendered_subtitle)
-
-        #KEYWORDS SEARCHER
 
         if HAS_GIFS:
 
