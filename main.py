@@ -8,7 +8,7 @@ import ast
 import re
 
 from audio.audio import Audio
-from subtitles.subtitle import Subtitle
+from subtitles.subtitle_director import SubtitleDirector
 from image.image import Image
 from file_getter.minio_file_getter import MinioFileGetter
 from video.video_director import VideoDirector
@@ -44,7 +44,7 @@ def main():
         temp_gameplay_folder = "temp_gameplay"
         gameplay_bucket_name = "gameplays"
         
-        list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4", "Fall Guys 1.mp4", "Fall Guys 2.mp4",
+        list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4",
                           "clash-vertical1.mp4", "clash-vertical2.mp4", "Cuphead324x574.mp4", "dbd.mp4",
                             "flappy-ai.mp4", "fortnite-goga.mp4", "gettingoverit.mp4", "gta.mp4", "subway.mp4","subway2.mp4","subway3.mp4"]
 
@@ -102,8 +102,16 @@ def main():
             font = "resources/fonts/TikTokDisplay-Bold.ttf"
             font_size = 60
             word = word.upper()
-            sub = Subtitle(word,font,font_size,"white","black",4,"center","caption", (rendered_video.size[0]-font_size,None), (20,10))
-            
+            size = (rendered_video.size[0]-font_size,None)
+
+            random_number = random.randint(1,10)
+            subtitle_director = SubtitleDirector()
+
+            if random_number == 2:        
+                sub = subtitle_director.build_highlight_subtitle(word,size)
+            else:
+                sub = subtitle_director.build_normal_subtitle(word,size)
+                        
             rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, rendered_video.size[1])
             clips.append(rendered_subtitle)
 

@@ -1,6 +1,7 @@
 class Subtitle:
-    def __init__(self, text:str, font: str, font_size:int, color:str, stroke_color:str, stroke_width:int, text_align:str, method:str, size:int, margin:tuple[int]):
+    def __init__(self, text:str, size:int, font: str="resources/fonts/TikTokDisplay-Bold.ttf", font_size:int=60, color:str="white", stroke_color:str="black", stroke_width:int=4, text_align:str="center", method:str="caption", margin:tuple[int]=(20,10)):
         self.text = text
+        self.size = size
         self.font = font
         self.font_size = font_size
         self.color = color
@@ -8,5 +9,4 @@ class Subtitle:
         self.stroke_width = stroke_width
         self.text_align = text_align
         self.method = method
-        self.size = size
         self.margin = margin
