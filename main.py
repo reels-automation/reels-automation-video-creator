@@ -15,12 +15,12 @@ from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
 from kafka.consumer import create_consumer
 from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_json
-
 from gif_searcher.tenor_searcher import TenorSearcher
 from gif_searcher.giphy_searcher import GiphySearcher
 from utils.utils import get_keywords, clean_filename
 
-from settings import ROOT_DIR
+from settings import ROOT_DIR, KAFKA_BROKER
+from message.message import MessageBuilder
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -53,11 +53,30 @@ def main():
     HAS_GIFS = False
 
     while True:
-        consumer = Application(broker_address="localhost:9092", loglevel="DEBUG")
+        consumer = Application(broker_address=KAFKA_BROKER, loglevel="DEBUG")
         topic_to_subscribe = "subtitles-audios"
         response = create_consumer(consumer, topic_to_subscribe)
 
-        video_name = response["subtitles_name"].split(".json")[0]
+        print("response: ", response)
+
+        message_builder = MessageBuilder(response["tema"])
+        message = (message_builder
+                            .add_personaje(response["personaje"])
+                            .add_script(response["script"])
+                            .add_tts_audio_name(response["tts_audio_name"])
+                            .add_tts_audio_bucket(response["tts_audio_bucket"])
+                            .add_subtitles_name(response["subtitles_name"])
+                            .add_subtitles_bucket(response["subtitles_bucket"])
+                            .add_author(response["author"])
+                            .add_pitch(response["pitch"])
+                            .add_tts_voice(response["tts_voice"])
+                            .add_tts_rate(response["tts_rate"])
+                            .add_pth_voice(response["pth_voice"])
+                            .add_gameplay_name(response["gameplay_name"])
+                            .build()
+                        )
+
+        video_name = message.subtitles_name.split(".json")[0]
         
         #Get Gameplay
         temp_gameplay_folder = "temp_gameplay"
@@ -77,12 +96,12 @@ def main():
         
         #Get audio
         temp_audio_folder = "temp_audios"
-        audio_bucket_name = "audios-tts"
-        audio_object_name = f"{video_name}.mp3"
+        audio_bucket_name = message.tts_audio_bucket
+        audio_object_name = message.tts_audio_name
 
         audio_file_location = minio_file_getter.get_file_temp_folder(temp_audio_folder,audio_object_name,audio_bucket_name)
         
-        audio = Audio(audio_file_location, None, "Homero Simpson")
+        audio = Audio(audio_file_location, None, message.personaje)
         rendered_audio = video_creator.render_audio(audio)
         audio_duration = rendered_audio.duration
 
