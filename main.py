@@ -40,7 +40,7 @@ def get_subtitles(subtitles_json:dict, video_width:int, video_height:int, video_
             start_time = subtitle["start"]
             end_time = subtitle["end"]
             subtitle_director = SubtitleDirector()
-            highligthed_word_percentage = 30
+            highligthed_word_percentage = 0
             sub = subtitle_director.build_random_subtitle(word,video_width,highligthed_word_percentage)
             rendered_subtitle = video_creator.render_subtitle(sub, start_time, end_time, video_height)
             clips.append(rendered_subtitle)
@@ -85,10 +85,14 @@ def main():
         list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4",
                           "clash-vertical1.mp4", "clash-vertical2.mp4", "Cuphead324x574.mp4", "dbd.mp4",
                             "flappy-ai.mp4", "fortnite-goga.mp4", "gettingoverit.mp4", "gta.mp4", "subway.mp4","subway2.mp4","subway3.mp4"]
+        
+        if message.gameplay_name is None or message.gameplay_name == "":
+            gameplay_object_name = random.choice(list_of_videos)
+        else:
+            gameplay_object_name = message.gameplay_name
 
-
-        gameplay_object_name = random.choice(list_of_videos)
-
+        
+        print("gameplay object name: ", gameplay_object_name)
         gameplay_file_location = minio_file_getter.get_file_temp_folder(temp_gameplay_folder, gameplay_object_name, gameplay_bucket_name)
 
         name = gameplay_object_name.split(".")
@@ -105,8 +109,19 @@ def main():
         rendered_audio = video_creator.render_audio(audio)
         audio_duration = rendered_audio.duration
 
-        #Image
-        image = Image("temp_images/homero.png")
+        image_directory = f"temp_images/{message.pth_voice}"
+        images_from_dir = os.listdir(image_directory)
+
+        print("image dir :", images_from_dir)
+
+        image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
+
+
+        print("image name: ", image_name)
+
+        
+        
+        image = Image(image_name)
 
         rendered_video = video_creator.render_video(gameplay, audio_duration)
         resize_factor = 1/3 * rendered_video.size[1]
