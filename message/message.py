@@ -4,18 +4,19 @@ from utils.utils import sanitize_attribute
 @dataclass
 class Message:
     tema: str
-    personaje: str = None
-    script: str = None
-    tts_audio_name: str = None
-    tts_audio_bucket: str = None
-    subtitles_name: str = None
-    subtitles_bucket: str = None
-    author: str = None
+    personaje: str = ""
+    script: str = ""
+    tts_audio_name: str = ""
+    tts_audio_bucket: str = ""
+    subtitles_name: str = ""
+    subtitles_bucket: str = ""
+    author: str = ""
     pitch: int = 0 
-    tts_voice: str = None
+    tts_voice: str = ""
     tts_rate: int = 0
-    pth_voice: str = None
-    gameplay_name: str = None
+    pth_voice: str = ""
+    gameplay_name: str = ""
+    instagram_account: str = ""
 
     def to_dict(self):
         return self.__dict__
@@ -70,6 +71,10 @@ class MessageBuilder:
     
     def add_gameplay_name(self, gameplay_name: str):
         self.message.gameplay_name = sanitize_attribute(gameplay_name)
+        return self
+
+    def add_instagram_account(self, instagram_account:str):
+        self.message.instagram_account = sanitize_attribute(instagram_account)
         return self
     
     def build(self):

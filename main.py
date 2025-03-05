@@ -50,7 +50,6 @@ def main():
     video_director = VideoDirector()
     minio_file_getter = MinioFileGetter()
     video_creator = MoviePyVideoCreator()
-    HAS_GIFS = False
 
     while True:
         consumer = Application(broker_address=KAFKA_BROKER, loglevel="DEBUG")
@@ -73,6 +72,7 @@ def main():
                             .add_tts_rate(response["tts_rate"])
                             .add_pth_voice(response["pth_voice"])
                             .add_gameplay_name(response["gameplay_name"])
+                            .add_instagram_account(response["instagram_account"])
                             .build()
                         )
 
@@ -108,7 +108,8 @@ def main():
         audio = Audio(audio_file_location, None, message.personaje)
         rendered_audio = video_creator.render_audio(audio)
         audio_duration = rendered_audio.duration
-
+        
+        #Get Image
         image_directory = f"temp_images/{message.pth_voice}"
         images_from_dir = os.listdir(image_directory)
 
@@ -118,8 +119,6 @@ def main():
 
 
         print("image name: ", image_name)
-
-        
         
         image = Image(image_name)
 
@@ -142,54 +141,9 @@ def main():
         with open(subtitle_file_location, "r") as openfile:
             data = json.load(openfile)
         
-        script = ""
         video_width = rendered_video.size[0]
         video_heigth = rendered_video.size[1]
         get_subtitles(data, video_width, video_heigth, video_creator, clips)
-
-
-        if HAS_GIFS:
-
-            keywords = extract_keywords(script)
-            gif_searcher = TenorSearcher()
-
-            new_keywords = str([word[0] for word in keywords])
-
-
-            better_keywords = get_keywords(new_keywords)
-
-            list_keywords = []
-
-            current_word = ""
-            
-
-            for char in better_keywords:
-                print("Char , ", char)
-                
-                if char != "[" and char != "," and char != "]":
-                    current_word += char
-                else:
-                    cleaned_word = clean_filename(current_word)
-                    list_keywords.append(cleaned_word)
-                    current_word = ""
-
-                    
-            gif_start_time = 0
-            for index , keyword in enumerate(list_keywords):
-                
-                gif_url = gif_searcher.search_gif(keyword)
-                if gif_url:
-
-                    gif_location = f"temp_gifs/{keyword}.gif"
-                    gif_searcher.download_gif(gif_url, gif_location)
-                    gif_video = video_director.build_gif(gif_location, keyword)
-                    gif_end_time = gif_start_time + 3
-                    gifclip = video_creator.render_gif(gif_video, gif_start_time, gif_end_time, rendered_video.size[1])
-                    clips.append(gifclip)
-                    gif_start_time = gif_end_time + 6
-
-                else:
-                    print(f"No gif found for: {keyword}")
         
         video_creator.render_final_clip(video_name, clips, audios)
         
@@ -201,7 +155,7 @@ def main():
         minio_file_getter.upload_file(bucket_name, video_name,video_path)
 
         url = "http://localhost:5000/add-video"
-        data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False}
+        data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False, "instagram_account":message.instagram_account}
         headers = {'Content-Type': 'application/json'} 
         
         response = requests.post(url, data=json.dumps(data), headers= headers)
