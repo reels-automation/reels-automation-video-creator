@@ -84,7 +84,7 @@ def main():
         
         list_of_videos = ["60seconds1.mp4", "60seconds2.mp4","60valorant.mp4",
                           "clash-vertical1.mp4", "clash-vertical2.mp4", "Cuphead324x574.mp4", "dbd.mp4",
-                            "flappy-ai.mp4", "fortnite-goga.mp4", "gettingoverit.mp4", "gta.mp4", "subway.mp4","subway2.mp4","subway3.mp4"]
+                            "flappy-ai.mp4", "fortnite-goga.mp4", "gettingoverit.mp4", "gta.mp4", "subway.mp4","subway2.mp4","subway3.mp4", "undertale1.mp4","undertale2.mp4"]
         
         if message.gameplay_name is None or message.gameplay_name == "":
             gameplay_object_name = random.choice(list_of_videos)
@@ -110,7 +110,11 @@ def main():
         audio_duration = rendered_audio.duration
         
         #Get Image
+        if message.pth_voice == "":
+            message.pth_voice = "HOMERO SIMPSON LATINO"
+        
         image_directory = f"temp_images/{message.pth_voice}"
+
         images_from_dir = os.listdir(image_directory)
 
         print("image dir :", images_from_dir)
