@@ -132,19 +132,27 @@ def main():
         clips.append(rendered_video)
         
         previous_start_time = 0
+        image_cooldown = 1
         for i in range(amount_of_images):
+            
             image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
             print(f"Image number {i}: ", image_name)
             image_pillow = Image.open(image_name)
             width, height = image_pillow.size
-            duration = ( audio_duration // amount_of_images ) + 1       
+
+            if i == amount_of_images -1:
+                image_cooldown = 0
+
+            duration = ( audio_duration // amount_of_images ) + image_cooldown      
             resize_factor = 1/3 * rendered_video.size[1]
             image = CustomImage(image_name, width, height, previous_start_time , duration, resize_factor)
             
             previous_start_time +=  duration
             
             print("Previous start time: ",  previous_start_time)
-            rendered_homer_image = render_image_factory.render_image(render_image_factory.NO_ANIMATION, image)
+
+            video_size = rendered_video.size
+            rendered_homer_image = render_image_factory.render_image(render_image_factory.SIDEWAYS, image,video_size)
             clips.append(rendered_homer_image)
 
 

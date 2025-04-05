@@ -15,19 +15,19 @@ class RenderImageFactory:
     ALL_IMAGES = [NO_ANIMATION, SIDEWAYS]
 
     @staticmethod
-    def render_image(render_image_strategy:str, image:CustomImage):
+    def render_image(render_image_strategy:str, image:CustomImage, video_size:tuple[int,int]):
         
         if render_image_strategy == RenderImageFactory.NO_ANIMATION:
             image_renderer = RenderImageNoAnimation()
-            return image_renderer.render_image_animation(image)
+            return image_renderer.render_image_animation(image,video_size)
         
         elif render_image_strategy == RenderImageFactory.SIDEWAYS:
             image_renderer = RenderImageSideways()
-            return image_renderer.render_image_animation(image)
+            return image_renderer.render_image_animation(image,video_size)
 
         elif render_image_strategy == RenderImageFactory.RANDOM:
             strategy = random.choice(RenderImageFactory.ALL_IMAGES)
-            return RenderImageFactory.render_image(strategy, image)
+            return RenderImageFactory.render_image(strategy, image, video_size)
 
 
 
