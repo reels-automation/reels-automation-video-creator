@@ -144,7 +144,7 @@ def main():
             previous_start_time +=  duration
             
             print("Previous start time: ",  previous_start_time)
-            rendered_homer_image = render_image_factory.render_image(render_image_factory.SIDEWAYS, image)
+            rendered_homer_image = render_image_factory.render_image(render_image_factory.NO_ANIMATION, image)
             clips.append(rendered_homer_image)
 
 

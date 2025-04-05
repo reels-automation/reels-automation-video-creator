@@ -1,20 +1,20 @@
 from video_creator.render_image.render_image_strategy import RenderImageStrategy
 from image.image import CustomImage
 from moviepy import *
+from PIL import Image
+import numpy as np
 
 class RenderImageNoAnimation(RenderImageStrategy):
 
     def render_image_animation(self, image: CustomImage) -> ImageClip:
-        movie_py_image = ImageClip(image.image_path).resized(height=image.resize_factor)
-
-        mask = movie_py_image.to_mask()
-        mask = mask.resized(movie_py_image.size)  
+        pil_image = Image.open(image.image_path).convert("RGB")  # Elimina canal alpha
         
-        movie_py_image = movie_py_image.with_mask(mask)
+        movie_py_image = ImageClip(np.array(pil_image))
         
-        movie_py_image = movie_py_image
-
-        movie_py_image = movie_py_image.with_start(image.start_time).with_duration(image.duration)
-
-
+        movie_py_image = movie_py_image.resized(height=image.resize_factor)
+        movie_py_image = (
+            movie_py_image.with_duration(image.duration)
+            .with_start(image.start_time)
+        )
+        
         return movie_py_image
