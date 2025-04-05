@@ -122,7 +122,7 @@ def main():
 
         print("image dir :", images_from_dir)
 
-        amount_of_images = 4
+        amount_of_images = 6
         render_image_factory = RenderImageFactory()
         rendered_video = video_creator.render_video(gameplay, audio_duration)
         
@@ -142,6 +142,9 @@ def main():
 
             if i == amount_of_images -1:
                 image_cooldown = 0
+            
+            if i == amount_of_images - 1:
+                duration = audio_duration - previous_start_time
 
             duration = ( audio_duration // amount_of_images ) + image_cooldown      
             resize_factor = 1/3 * rendered_video.size[1]

@@ -7,7 +7,8 @@ import numpy as np
 class RenderImageSideways(RenderImageStrategy):
 
     def render_image_animation(self, image: CustomImage, video_size: tuple[int, int]) -> ImageClip:
-        pil_image = Image.open(image.image_path).convert("RGB")
+        
+        pil_image = Image.open(image.image_path).convert("RGBA")
         movie_py_image = ImageClip(np.array(pil_image))
         
         movie_py_image = movie_py_image.resized(height=image.resize_factor)
@@ -17,24 +18,20 @@ class RenderImageSideways(RenderImageStrategy):
         def get_position(t):
             try:
                 nonlocal direction_modifier
-                speed_factor = 70  # Factor de velocidad para ajustar cuánto se mueve por cada incremento de t
+                speed_factor = 70  
                 
-                # Inicializamos x en el centro de la pantalla
-                x = video_size[0] // 2  # Centro horizontal de la pantalla
+                x = video_size[0] // 2 
 
-                # Movemos la imagen dependiendo del valor de t (positivo o negativo)
                 x += direction_modifier * t * speed_factor
                 
-                # Comprobamos si la imagen ha alcanzado los bordes de la pantalla y hacemos que rebote
-                if x >= video_size[0] -  200:  # Límite derecho (con un pequeño margen)
-                    direction_modifier = -1  # Invertir dirección para mover hacia la izquierda
-                    x = video_size[0] -  50  # Ajustar para que no sobrepase el borde
+                if x >= video_size[0] - 200:  
+                    direction_modifier = -1  
+                    x = video_size[0] // 2  
 
-                elif x <= 50:  # Límite izquierdo (con un pequeño margen)
-                    direction_modifier = 1  # Invertir dirección para mover hacia la derecha
-                    x = 50  # Ajustar para que no sobrepase el borde
+                elif x <= 50: 
+                    direction_modifier = 1  
+                    x = video_size[0] // 2  
 
-                # Mantener la posición de y en la parte inferior de la pantalla
                 y = video_size[1] - movie_py_image.h - 50
 
                 # Imprimimos el valor de x para ver cómo se mueve

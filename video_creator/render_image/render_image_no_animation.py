@@ -7,7 +7,7 @@ import numpy as np
 class RenderImageNoAnimation(RenderImageStrategy):
 
     def render_image_animation(self, image: CustomImage,video_size:tuple[int,int]) -> ImageClip:
-        pil_image = Image.open(image.image_path).convert("RGB")  # Elimina canal alpha
+        pil_image = Image.open(image.image_path).convert("RGBA")  # Elimina canal alpha
         
         movie_py_image = ImageClip(np.array(pil_image))
         
