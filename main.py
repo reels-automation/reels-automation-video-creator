@@ -1,4 +1,5 @@
 from quixstreams import Application
+from PIL import Image
 import os
 import json
 import random
@@ -9,7 +10,7 @@ import re
 
 from audio.audio import Audio
 from subtitles.subtitle_director import SubtitleDirector
-from image.image import Image
+from image.image import CustomImage
 from file_getter.minio_file_getter import MinioFileGetter
 from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
@@ -21,6 +22,8 @@ from utils.utils import get_keywords, clean_filename
 
 from settings import ROOT_DIR, KAFKA_BROKER
 from message.message import MessageBuilder
+
+from video_creator.render_image.render_image_factory import RenderImageFactory
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -119,22 +122,31 @@ def main():
 
         print("image dir :", images_from_dir)
 
-        image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
-
-
-        print("image name: ", image_name)
-        
-        image = Image(image_name)
-
+        amount_of_images = 4
+        render_image_factory = RenderImageFactory()
         rendered_video = video_creator.render_video(gameplay, audio_duration)
-        resize_factor = 1/3 * rendered_video.size[1]
-        rendered_homer_image = video_creator.render_image(image, resize_factor, audio_duration)
         
         clips = []
         audios = []
         audios.append(rendered_audio)
         clips.append(rendered_video)
-        clips.append(rendered_homer_image)
+        
+        previous_start_time = 0
+        for i in range(amount_of_images):
+            image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
+            print(f"Image number {i}: ", image_name)
+            image_pillow = Image.open(image_name)
+            width, height = image_pillow.size
+            duration = ( audio_duration // amount_of_images ) + 1       
+            resize_factor = 1/3 * rendered_video.size[1]
+            image = CustomImage(image_name, width, height, previous_start_time , duration, resize_factor)
+            
+            previous_start_time +=  duration
+            
+            print("Previous start time: ",  previous_start_time)
+            rendered_homer_image = render_image_factory.render_image(render_image_factory.SIDEWAYS, image)
+            clips.append(rendered_homer_image)
+
 
         #Get and Render Subtitles
         temp_subtitles_folder = "temp_subtitles"

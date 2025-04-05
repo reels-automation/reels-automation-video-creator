@@ -5,4 +5,4 @@ install:
 python-run:
 	sed -i '/^ENVIRONMENT/d' .env
 	echo 'ENVIRONMENT=DEVELOPMENT' >> .env
-	bash -c 'source env/bin/activate && python main.py'
+	bash -c 'source env/bin/activate && python main.py | pygmentize -g'

@@ -1,10 +1,11 @@
-import numpy as np
+import math
 from moviepy import *
 from video.video import Video
 from audio.audio import Audio
-from image.image import Image
+from image.image import CustomImage
 from subtitles.subtitle import Subtitle
 from video_creator.i_video_creator import IVideoCreator
+from video_creator.render_image.render_image_factory import RenderImageFactory 
 
 
 class MoviePyVideoCreator(IVideoCreator):
@@ -55,12 +56,8 @@ class MoviePyVideoCreator(IVideoCreator):
         
         return movie_py_subtitle
     
-    def render_image(self, image:Image, resize_factor:int, duration:int):
-    
-        movie_py_image = ImageClip(image.image_path).resized(height=resize_factor)
-        movie_py_image = movie_py_image.with_start(0).with_position(("left", "bottom")).with_duration(duration)
-        return movie_py_image
-    
+    def render_image(self, image:CustomImage, animation_pattern:str):
+        return RenderImageFactory().render_image(animation_pattern, image)
     
     def render_final_clip(self, name:str, list_of_clips: list, list_of_audio_clip: list[AudioFileClip] = None):
         final_clip = CompositeVideoClip(list_of_clips)
@@ -70,7 +67,6 @@ class MoviePyVideoCreator(IVideoCreator):
             final_clip.audio = final_audio
 
         file_destination = f"{self.temp_video_folder}/{name}.mp4"
-
 
         final_clip.write_videofile(file_destination, threads=self.threads, fps=self.fps)
 

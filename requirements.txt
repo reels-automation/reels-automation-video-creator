@@ -4,3 +4,4 @@ quixstreams
 yake
 pillow 
 imageio
+Pillow
