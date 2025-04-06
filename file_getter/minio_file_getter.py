@@ -36,5 +36,5 @@ class MinioFileGetter(FileGetter):
             audio_path
 
         )
-        os.remove(audio_path)
+        #os.remove(audio_path)
     

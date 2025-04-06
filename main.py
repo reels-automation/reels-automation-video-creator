@@ -122,7 +122,7 @@ def main():
 
         print("image dir :", images_from_dir)
 
-        amount_of_images = 6
+        amount_of_images = 10
         render_image_factory = RenderImageFactory()
         rendered_video = video_creator.render_video(gameplay, audio_duration)
         
@@ -146,7 +146,7 @@ def main():
             if i == amount_of_images - 1:
                 duration = audio_duration - previous_start_time
 
-            duration = ( audio_duration // amount_of_images ) + image_cooldown      
+            duration = ( audio_duration // amount_of_images ) + 1    
             resize_factor = 1/3 * rendered_video.size[1]
             image = CustomImage(image_name, width, height, previous_start_time , duration, resize_factor)
             
@@ -155,7 +155,7 @@ def main():
             print("Previous start time: ",  previous_start_time)
 
             video_size = rendered_video.size
-            rendered_homer_image = render_image_factory.render_image(render_image_factory.SIDEWAYS, image,video_size)
+            rendered_homer_image = render_image_factory.render_image(render_image_factory.RANDOM, image,video_size)
             clips.append(rendered_homer_image)
 
 
