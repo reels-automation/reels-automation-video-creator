@@ -17,7 +17,7 @@ class RenderImageOrbit(RenderImageStrategy):
         pil_image = Image.open(image.image_path).convert("RGBA")
         movie_py_image = ImageClip(np.array(pil_image))
 
-        resize_factor = 1/2 * image.resize_factor
+        resize_factor = 3/4 * image.resize_factor
 
         movie_py_image = movie_py_image.resized(height=resize_factor)
         
