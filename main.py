@@ -26,7 +26,7 @@ from message.message import MessageBuilder
 from video_creator.render_image.render_image_factory import RenderImageFactory
 
 from handlers.audio_handler import AudioHandler
-
+from handlers.image_handler import ImageHandler
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -57,6 +57,7 @@ def main():
     minio_file_getter = MinioFileGetter()
     video_creator = MoviePyVideoCreator()
     audio_handler = AudioHandler()
+    image_handler = ImageHandler()
 
     while True:
         consumer = Application(broker_address=KAFKA_BROKER, loglevel="DEBUG")
@@ -129,7 +130,7 @@ def main():
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         amount_of_images = 10
         render_image_factory = RenderImageFactory()
-        rendered_video = video_creator.render_video(gameplay, audio_duration)
+        rendered_video = video_creator.render_video(gameplay, audio.duration)
         
         clips = []
         audios = []
@@ -138,28 +139,20 @@ def main():
         
         previous_start_time = 0
         image_cooldown = 1
-        for i in range(amount_of_images):
-            
+        for i in range(amount_of_images): #hacer esto una funcion aparte
             image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
-            print(f"Image number {i}: ", image_name)
-            image_pillow = Image.open(image_name)
-            width, height = image_pillow.size
 
             if i == amount_of_images -1:
                 image_cooldown = 0
             
             if i == amount_of_images - 1:
-                duration = audio_duration - previous_start_time
+                duration = audio.duration - previous_start_time
 
-            duration = ( audio_duration // amount_of_images ) + 1    
-            resize_factor = 1/3 * rendered_video.size[1]
-            image = CustomImage(image_name, width, height, previous_start_time , duration, resize_factor)
-            
-            previous_start_time +=  duration
-            
-            print("Previous start time: ",  previous_start_time)
-
+            duration = ( audio.duration // amount_of_images ) + 1    
             video_size = rendered_video.size
+            image = image_handler.create_custom_image(image_name, previous_start_time, duration,rendered_video)
+            previous_start_time +=  duration
+            print("Previous start time: ",  previous_start_time)
             rendered_homer_image = render_image_factory.render_image(render_image_factory.RANDOM, image,video_size)
             clips.append(rendered_homer_image)
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
