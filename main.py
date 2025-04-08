@@ -25,6 +25,9 @@ from message.message import MessageBuilder
 
 from video_creator.render_image.render_image_factory import RenderImageFactory
 
+from handlers.audio_handler import AudioHandler
+
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -53,6 +56,7 @@ def main():
     video_director = VideoDirector()
     minio_file_getter = MinioFileGetter()
     video_creator = MoviePyVideoCreator()
+    audio_handler = AudioHandler()
 
     while True:
         consumer = Application(broker_address=KAFKA_BROKER, loglevel="DEBUG")
@@ -81,6 +85,7 @@ def main():
 
         video_name = message.subtitles_name.split(".json")[0]
         
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get Gameplay
         temp_gameplay_folder = "temp_gameplay"
         gameplay_bucket_name = "gameplays"
@@ -93,25 +98,23 @@ def main():
             gameplay_object_name = random.choice(list_of_videos)
         else:
             gameplay_object_name = message.gameplay_name
-
-        
         print("gameplay object name: ", gameplay_object_name)
         gameplay_file_location = minio_file_getter.get_file_temp_folder(temp_gameplay_folder, gameplay_object_name, gameplay_bucket_name)
-
         name = gameplay_object_name.split(".")
         gameplay = video_director.build_gameplay(gameplay_file_location, name[0])
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         
-        #Get audio
-        temp_audio_folder = "temp_audios"
-        audio_bucket_name = message.tts_audio_bucket
-        audio_object_name = message.tts_audio_name
-
-        audio_file_location = minio_file_getter.get_file_temp_folder(temp_audio_folder,audio_object_name,audio_bucket_name)
-        
-        audio = Audio(audio_file_location, None, message.personaje)
+        #Get Audio.
+        audio = audio_handler.get_audio(
+            audio_bucket_name=message.tts_audio_bucket,
+            audio_object_name=message.tts_audio_name,
+            file_getter=minio_file_getter,
+            temp_audio_folder="temp_audios"
+            )                
         rendered_audio = video_creator.render_audio(audio)
-        audio_duration = rendered_audio.duration
-        
+        audio.duration = rendered_audio.duration
+
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get Image
         if message.pth_voice == "":
             message.pth_voice = "HOMERO SIMPSON LATINO"
@@ -121,7 +124,9 @@ def main():
         images_from_dir = os.listdir(image_directory)
 
         print("image dir :", images_from_dir)
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         amount_of_images = 10
         render_image_factory = RenderImageFactory()
         rendered_video = video_creator.render_video(gameplay, audio_duration)
@@ -157,8 +162,10 @@ def main():
             video_size = rendered_video.size
             rendered_homer_image = render_image_factory.render_image(render_image_factory.RANDOM, image,video_size)
             clips.append(rendered_homer_image)
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
+        
 
-
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get and Render Subtitles
         temp_subtitles_folder = "temp_subtitles"
         subtitle_object_name = f"{video_name}.json"
@@ -171,7 +178,10 @@ def main():
         video_width = rendered_video.size[0]
         video_heigth = rendered_video.size[1]
         get_subtitles(data, video_width, video_heigth, video_creator, clips)
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         
+
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         video_creator.render_final_clip(video_name, clips, audios)
         
         bucket_name = "videos-homero"
@@ -188,8 +198,7 @@ def main():
         response = requests.post(url, data=json.dumps(data), headers= headers)
         print("Status Code:", response.status_code)
         print("Resposne, ", response.json())
-
-
+        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
 if __name__ == "__main__":
     main()

@@ -4,7 +4,7 @@ class FileGetter(ABC):
     def __init__(self, temp_folder: str):
         self.temp_folder = temp_folder
     
-    def get_file_temp_folder(self):
+    def get_file_temp_folder(self)-> str:
         """Gets a file from a repository
         """
 
