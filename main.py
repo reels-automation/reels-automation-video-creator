@@ -12,6 +12,7 @@ from audio.audio import Audio
 from subtitles.subtitle_director import SubtitleDirector
 from image.image import CustomImage
 from file_getter.minio_file_getter import MinioFileGetter
+from file_getter.file_getter_local_folder import FileGetterLocalFolder
 from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
 from kafka.consumer import create_consumer
@@ -55,6 +56,7 @@ def main():
     
     video_director = VideoDirector()
     minio_file_getter = MinioFileGetter()
+    file_getter_local_folder = FileGetterLocalFolder()
     video_creator = MoviePyVideoCreator()
     audio_handler = AudioHandler()
     image_handler = ImageHandler()
@@ -100,7 +102,7 @@ def main():
         else:
             gameplay_object_name = message.gameplay_name
         print("gameplay object name: ", gameplay_object_name)
-        gameplay_file_location = minio_file_getter.get_file_temp_folder(temp_gameplay_folder, gameplay_object_name, gameplay_bucket_name)
+        gameplay_file_location = minio_file_getter.get_file(gameplay_object_name, gameplay_bucket_name)
         name = gameplay_object_name.split(".")
         gameplay = video_director.build_gameplay(gameplay_file_location, name[0])
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
@@ -137,33 +139,23 @@ def main():
         audios.append(rendered_audio)
         clips.append(rendered_video)
         
-        previous_start_time = 0
-        image_cooldown = 1
-        for i in range(amount_of_images): #hacer esto una funcion aparte
-            image_name = os.path.join(image_directory, f"{random.choice(images_from_dir)}")
-
-            if i == amount_of_images -1:
-                image_cooldown = 0
-            
-            if i == amount_of_images - 1:
-                duration = audio.duration - previous_start_time
-
-            duration = ( audio.duration // amount_of_images ) + 1    
-            video_size = rendered_video.size
-            image = image_handler.create_custom_image(image_name, previous_start_time, duration,rendered_video)
-            previous_start_time +=  duration
-            print("Previous start time: ",  previous_start_time)
-            rendered_homer_image = render_image_factory.render_image(render_image_factory.RANDOM, image,video_size)
-            clips.append(rendered_homer_image)
-        #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
+        character_images = image_handler.create_random_images(amount_of_images, 
+                                                              file_getter_local_folder,
+                                                              image_directory,
+                                                              audio.duration,
+                                                              rendered_video.size
+                                                              )
         
+        for custom_image in character_images:
+            rendered_image = render_image_factory.render_image(render_image_factory.RANDOM, custom_image,rendered_video.size)
+            clips.append(rendered_image)
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get and Render Subtitles
         temp_subtitles_folder = "temp_subtitles"
         subtitle_object_name = f"{video_name}.json"
         subtitles_bucket_name = "subtitles-json"
-        subtitle_file_location = minio_file_getter.get_file_temp_folder(temp_subtitles_folder,subtitle_object_name,subtitles_bucket_name)
+        subtitle_file_location = minio_file_getter.get_file(subtitle_object_name,subtitles_bucket_name)
         
         with open(subtitle_file_location, "r") as openfile:
             data = json.load(openfile)

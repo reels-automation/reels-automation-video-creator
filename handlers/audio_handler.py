@@ -14,7 +14,7 @@ class AudioHandler:
         Returns:
             Audio: An instance of the created audio
         """
-        audio_file_location = file_getter.get_file_temp_folder(temp_audio_folder, audio_object_name, audio_bucket_name)
+        audio_file_location = file_getter.get_file(temp_audio_folder, audio_object_name, audio_bucket_name)
         audio = Audio(audio_file_location, personaje=None)
         return audio
 
