@@ -13,6 +13,7 @@ from subtitles.subtitle_director import SubtitleDirector
 from image.image import CustomImage
 from file_getter.minio_file_getter import MinioFileGetter
 from file_getter.file_getter_local_folder import FileGetterLocalFolder
+from file_getter.web_file_getter import WebImageFileGetter
 from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
 from kafka.consumer import create_consumer
@@ -30,7 +31,7 @@ from handlers.audio_handler import AudioHandler
 from handlers.image_handler import ImageHandler
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_subtitles(subtitles_json:dict, video_width:int, video_height:int, video_creator:MoviePyVideoCreator, clips:list):
     """Gets the subtitles from a json file
@@ -57,11 +58,15 @@ def main():
     video_director = VideoDirector()
     minio_file_getter = MinioFileGetter()
     file_getter_local_folder = FileGetterLocalFolder()
+    file_getter_web = WebImageFileGetter()
     video_creator = MoviePyVideoCreator()
     audio_handler = AudioHandler()
     image_handler = ImageHandler()
+    
+    print("enter here")
 
     while True:
+        
         consumer = Application(broker_address=KAFKA_BROKER, loglevel="DEBUG")
         topic_to_subscribe = "subtitles-audios"
         response = create_consumer(consumer, topic_to_subscribe)
@@ -130,7 +135,7 @@ def main():
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
-        amount_of_images = 10
+        amount_of_images = 6
         render_image_factory = RenderImageFactory()
         rendered_video = video_creator.render_video(gameplay, audio.duration)
         
@@ -140,7 +145,7 @@ def main():
         clips.append(rendered_video)
         
         character_images = image_handler.create_random_images(amount_of_images, 
-                                                              file_getter_local_folder,
+                                                              file_getter_web,
                                                               image_directory,
                                                               audio.duration,
                                                               rendered_video.size
@@ -172,7 +177,7 @@ def main():
         bucket_name = "videos-homero"
         video_path = os.path.join(ROOT_DIR, "temp_vids",f"{video_name}.mp4")
 
-        print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
+        #print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
 
         minio_file_getter.upload_file(bucket_name, video_name,video_path)
 
@@ -181,8 +186,8 @@ def main():
         headers = {'Content-Type': 'application/json'} 
         
         response = requests.post(url, data=json.dumps(data), headers= headers)
-        print("Status Code:", response.status_code)
-        print("Resposne, ", response.json())
+        #print("Status Code:", response.status_code)
+        #print("Resposne, ", response.json())
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
 if __name__ == "__main__":

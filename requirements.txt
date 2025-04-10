@@ -5,3 +5,4 @@ yake
 pillow 
 imageio
 Pillow
+selenium

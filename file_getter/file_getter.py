@@ -1,8 +1,6 @@
 from abc import ABC
 
 class FileGetter(ABC):
-    def __init__(self, temp_folder: str):
-        self.temp_folder = temp_folder
     
     def get_file(self,file_name:str, file_location:str)-> str:
         """Gets a file from a repository 

@@ -39,9 +39,17 @@ class ImageHandler:
         start_time = 0
         image_duration = (audio_duration / number_of_images)
         
-        for _ in range(number_of_images):            
+        for i in range(number_of_images):
+            
+            start_time = int(i * image_duration)
+            end_time = int((i+1)*image_duration)
+            duration = end_time - start_time
+
+            if i == number_of_images -1:
+                duration = audio_duration - start_time
+
             image_path = file_getter.get_random_file(file_location)
-            custom_image = self.create_custom_image(image_path,start_time,audio_duration,video_size)
+            custom_image = self.create_custom_image(image_path,start_time,duration,video_size)
             start_time += image_duration
             custom_images_list.append(custom_image)
         
