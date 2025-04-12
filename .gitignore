@@ -69,3 +69,5 @@
 **/*env
 
 env
+**/temp_storage_web
+

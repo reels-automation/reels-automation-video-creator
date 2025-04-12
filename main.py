@@ -11,9 +11,6 @@ import re
 from audio.audio import Audio
 from subtitles.subtitle_director import SubtitleDirector
 from image.image import CustomImage
-from file_getter.minio_file_getter import MinioFileGetter
-from file_getter.file_getter_local_folder import FileGetterLocalFolder
-from file_getter.web_file_getter import WebImageFileGetter
 from video.video_director import VideoDirector
 from video_creator.moviepy_video_creator import MoviePyVideoCreator
 from kafka.consumer import create_consumer
@@ -21,14 +18,13 @@ from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_j
 from gif_searcher.tenor_searcher import TenorSearcher
 from gif_searcher.giphy_searcher import GiphySearcher
 from utils.utils import get_keywords, clean_filename
-
 from settings import ROOT_DIR, KAFKA_BROKER
 from message.message import MessageBuilder
-
 from video_creator.render_image.render_image_factory import RenderImageFactory
-
 from handlers.audio_handler import AudioHandler
 from handlers.image_handler import ImageHandler
+
+from file_getter.file_getter_factory import FileGetterFactory
 
 # Set up logging
 #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -56,9 +52,7 @@ def get_subtitles(subtitles_json:dict, video_width:int, video_height:int, video_
 def main():
     
     video_director = VideoDirector()
-    minio_file_getter = MinioFileGetter()
-    file_getter_local_folder = FileGetterLocalFolder()
-    file_getter_web = WebImageFileGetter()
+    file_getter_factory = FileGetterFactory()
     video_creator = MoviePyVideoCreator()
     audio_handler = AudioHandler()
     image_handler = ImageHandler()
@@ -107,7 +101,7 @@ def main():
         else:
             gameplay_object_name = message.gameplay_name
         print("gameplay object name: ", gameplay_object_name)
-        gameplay_file_location = minio_file_getter.get_file(gameplay_object_name, gameplay_bucket_name)
+        gameplay_file_location = file_getter_factory.create_file_getter(file_getter_factory.minio).get_file(gameplay_object_name, gameplay_bucket_name)
         name = gameplay_object_name.split(".")
         gameplay = video_director.build_gameplay(gameplay_file_location, name[0])
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
@@ -116,7 +110,7 @@ def main():
         audio = audio_handler.get_audio(
             audio_bucket_name=message.tts_audio_bucket,
             audio_object_name=message.tts_audio_name,
-            file_getter=minio_file_getter,
+            file_getter=file_getter_factory.create_file_getter(file_getter_factory.minio),
             temp_audio_folder="temp_audios"
             )                
         rendered_audio = video_creator.render_audio(audio)
@@ -145,7 +139,7 @@ def main():
         clips.append(rendered_video)
         
         character_images = image_handler.create_random_images(amount_of_images, 
-                                                              file_getter_web,
+                                                              file_getter_factory.create_file_getter(file_getter_factory.RANDOM),
                                                               image_directory,
                                                               audio.duration,
                                                               rendered_video.size
@@ -160,7 +154,7 @@ def main():
         temp_subtitles_folder = "temp_subtitles"
         subtitle_object_name = f"{video_name}.json"
         subtitles_bucket_name = "subtitles-json"
-        subtitle_file_location = minio_file_getter.get_file(subtitle_object_name,subtitles_bucket_name)
+        subtitle_file_location = file_getter_factory.create_file_getter(file_getter_factory.minio).get_file(subtitle_object_name,subtitles_bucket_name)
         
         with open(subtitle_file_location, "r") as openfile:
             data = json.load(openfile)
@@ -179,7 +173,7 @@ def main():
 
         #print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
 
-        minio_file_getter.upload_file(bucket_name, video_name,video_path)
+        file_getter_factory.create_file_getter(file_getter_factory.minio).upload_file(bucket_name, video_name,video_path)
 
         url = "http://localhost:5000/add-video"
         data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False, "instagram_account":message.instagram_account}
