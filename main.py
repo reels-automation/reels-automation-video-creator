@@ -69,23 +69,23 @@ def main():
 
         message_builder = MessageBuilder(response["tema"])
         message = (message_builder
+                            .add_usuario(response["usuario"])
+                            .add_idioma(response["idioma"])
                             .add_personaje(response["personaje"])
                             .add_script(response["script"])
-                            .add_tts_audio_name(response["tts_audio_name"])
-                            .add_tts_audio_bucket(response["tts_audio_bucket"])
-                            .add_subtitles_name(response["subtitles_name"])
-                            .add_subtitles_bucket(response["subtitles_bucket"])
+                            .add_audio_item(response["audio_item"])
+                            .add_subtitle_item(response["subtitle_item"])
                             .add_author(response["author"])
-                            .add_pitch(response["pitch"])
-                            .add_tts_voice(response["tts_voice"])
-                            .add_tts_rate(response["tts_rate"])
-                            .add_pth_voice(response["pth_voice"])
                             .add_gameplay_name(response["gameplay_name"])
-                            .add_instagram_account(response["instagram_account"])
-                            .build()
+                            .add_background_music(response["background_music"])
+                            .add_images(response["images"])
+                                    .add_random_images(response["random_images"])
+                                    .add_random_amount_images(response["random_amount_images"])
+                                    .add_gpt_model(response["gpt_model"])
+                                    .build()
                         )
 
-        video_name = message.subtitles_name.split(".json")[0]
+        video_name = message.get_video_name()
         
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get Gameplay
@@ -104,12 +104,13 @@ def main():
         gameplay_file_location = file_getter_factory.create_file_getter(file_getter_factory.minio).get_file(gameplay_object_name, gameplay_bucket_name)
         name = gameplay_object_name.split(".")
         gameplay = video_director.build_gameplay(gameplay_file_location, name[0])
+        
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         
         #Get Audio.
         audio = audio_handler.get_audio(
-            audio_bucket_name=message.tts_audio_bucket,
-            audio_object_name=message.tts_audio_name,
+            audio_bucket_name=message.get_audio_bucket(),
+            audio_object_name=message.get_audio_name(),
             file_getter=file_getter_factory.create_file_getter(file_getter_factory.minio),
             temp_audio_folder="temp_audios"
             )                
@@ -118,10 +119,10 @@ def main():
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get Image
-        if message.pth_voice == "":
-            message.pth_voice = "HOMERO SIMPSON LATINO"
+        if message.get_pth_voice() == "":
+            message.set_pth_voice("HOMERO SIMPSON LATINO") 
         
-        image_directory = f"temp_images/{message.pth_voice}"
+        image_directory = f"temp_images/{message.get_pth_voice()}"
 
         images_from_dir = os.listdir(image_directory)
 
@@ -129,31 +130,37 @@ def main():
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
-        amount_of_images = 6
-        render_image_factory = RenderImageFactory()
-        rendered_video = video_creator.render_video(gameplay, audio.duration)
         
-        clips = []
-        audios = []
-        audios.append(rendered_audio)
-        clips.append(rendered_video)
-        
-        character_images = image_handler.create_random_images(amount_of_images, 
-                                                              file_getter_factory.create_file_getter(file_getter_factory.RANDOM),
-                                                              image_directory,
-                                                              audio.duration,
-                                                              rendered_video.size
-                                                              )
-        
-        for custom_image in character_images:
-            rendered_image = render_image_factory.render_image(render_image_factory.RANDOM, custom_image,rendered_video.size)
-            clips.append(rendered_image)
+        print("hola")
+        if message.are_images_random():
+            print("imagenes son random")
+            amount_of_images = message.random_amount_images
+            render_image_factory = RenderImageFactory()
+            rendered_video = video_creator.render_video(gameplay, audio.duration)
+            
+            clips = []
+            audios = []
+            audios.append(rendered_audio)
+            clips.append(rendered_video)
+            
+            character_images = image_handler.create_random_images(amount_of_images, 
+                                                                file_getter_factory.create_file_getter(file_getter_factory.LOCAL_FOLDER),
+                                                                image_directory,
+                                                                audio.duration,
+                                                                rendered_video.size
+                                                                )
+            
+            for custom_image in character_images:
+                rendered_image = render_image_factory.render_image(render_image_factory.RANDOM, custom_image,rendered_video.size)
+                clips.append(rendered_image)
+        else:
+            print("imagenes no son random")
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get and Render Subtitles
         temp_subtitles_folder = "temp_subtitles"
-        subtitle_object_name = f"{video_name}.json"
-        subtitles_bucket_name = "subtitles-json"
+        subtitle_object_name = message.get_subtitle_name()
+        subtitles_bucket_name = message.get_subtitles_directory()
         subtitle_file_location = file_getter_factory.create_file_getter(file_getter_factory.minio).get_file(subtitle_object_name,subtitles_bucket_name)
         
         with open(subtitle_file_location, "r") as openfile:
@@ -166,6 +173,7 @@ def main():
         
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
+        print("Rendering video file")
         video_creator.render_final_clip(video_name, clips, audios)
         
         bucket_name = "videos-homero"
@@ -175,11 +183,10 @@ def main():
 
         file_getter_factory.create_file_getter(file_getter_factory.minio).upload_file(bucket_name, video_name,video_path)
 
-        url = "http://localhost:5000/add-video"
-        data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False, "instagram_account":message.instagram_account}
-        headers = {'Content-Type': 'application/json'} 
-        
-        response = requests.post(url, data=json.dumps(data), headers= headers)
+        #url = "http://localhost:5000/add-video"
+        ##data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False, "instagram_account":message.instagram_account}
+        #headers = {'Content-Type': 'application/json'} 
+        #response = requests.post(url, data=json.dumps(data), headers= headers)
         #print("Status Code:", response.status_code)
         #print("Resposne, ", response.json())
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
