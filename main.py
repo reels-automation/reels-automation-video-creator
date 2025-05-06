@@ -18,13 +18,14 @@ from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_j
 from gif_searcher.tenor_searcher import TenorSearcher
 from gif_searcher.giphy_searcher import GiphySearcher
 from utils.utils import get_keywords, clean_filename
-from settings import ROOT_DIR, KAFKA_BROKER
+from settings import ROOT_DIR, KAFKA_BROKER, API_GATEWAY_URL
 from message.message import MessageBuilder
 from video_creator.render_image.render_image_factory import RenderImageFactory
 from handlers.audio_handler import AudioHandler
 from handlers.image_handler import ImageHandler
 
 from file_getter.file_getter_factory import FileGetterFactory
+from api.add_video_mongo import add_video_mongo
 
 # Set up logging
 #logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -57,7 +58,6 @@ def main():
     audio_handler = AudioHandler()
     image_handler = ImageHandler()
     
-    print("enter here")
 
     while True:
         
@@ -177,18 +177,23 @@ def main():
         video_creator.render_final_clip(video_name, clips, audios)
         
         bucket_name = "videos-homero"
-        video_path = os.path.join(ROOT_DIR, "temp_vids",f"{video_name}.mp4")
+        mp4_video_name = f"{video_name}.mp4"
+
+        video_path = os.path.join(ROOT_DIR, "temp_vids",mp4_video_name)
 
         #print("XD: ", os.path.join(video_creator.temp_video_folder, video_name))
 
-        file_getter_factory.create_file_getter(file_getter_factory.minio).upload_file(bucket_name, video_name,video_path)
 
-        #url = "http://localhost:5000/add-video"
-        ##data = {"name": video_name, "bucket": bucket_name, "uploaded_to_cloudify":False,"uploaded_to_instagram": False, "instagram_account":message.instagram_account}
-        #headers = {'Content-Type': 'application/json'} 
-        #response = requests.post(url, data=json.dumps(data), headers= headers)
-        #print("Status Code:", response.status_code)
-        #print("Resposne, ", response.json())
+    
+        file_getter_factory.create_file_getter(file_getter_factory.minio).upload_file(bucket_name, mp4_video_name ,video_path)
+
+        try:
+            url = f"{API_GATEWAY_URL}add-video"
+            add_video_mongo(url, message.to_dict())
+        except Exception as ex:
+            print("Se produjo un error al crear el video de mongo: ", ex)
+
+
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
 if __name__ == "__main__":
