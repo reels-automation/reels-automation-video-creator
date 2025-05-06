@@ -131,7 +131,6 @@ def main():
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         
-        print("hola")
         if message.are_images_random():
             print("imagenes son random")
             amount_of_images = message.random_amount_images
@@ -189,7 +188,7 @@ def main():
 
         try:
             url = f"{API_GATEWAY_URL}add-video"
-            add_video_mongo(url, message.to_dict())
+            add_video_mongo(url, message.to_dict(), message.get_video_name())
         except Exception as ex:
             print("Se produjo un error al crear el video de mongo: ", ex)
 
