@@ -8,14 +8,18 @@ def add_video_mongo(url: str, data: dict, video_name: str):
 
     # Primer POST para obtener la URL del video
     get_video_api_url = f"{API_GATEWAY_URL}get-video"
+
+    print("GET_VIDEO URL : ", get_video_api_url)
+
     payload = {"video_name": f"{video_name}.mp4"}
     response_video = requests.post(get_video_api_url, json=payload, headers=headers)
     response_video.raise_for_status()
 
-    # 🔧 Acá corregimos: obtenemos el dict de la respuesta
+    print("Response video: ", response_video)
+    print("Response video: ", response_video.json())
+
     video_data = response_video.json()  # por ejemplo: {'url': 'http://...'}
 
-    # ✅ Actualizamos el data correctamente
     data.update(video_data)
 
     print("video_url:", video_data)
