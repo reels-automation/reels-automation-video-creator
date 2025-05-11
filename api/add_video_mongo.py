@@ -1,33 +1,43 @@
 import requests
 import json
+import time
 from settings import API_GATEWAY_URL
 
 
 def add_video_mongo(url: str, data: dict, video_name: str):
     headers = {'Content-Type': 'application/json'}
-
-    # Primer POST para obtener la URL del video
     get_video_api_url = f"{API_GATEWAY_URL}get-video"
-
-    print("GET_VIDEO URL : ", get_video_api_url)
-
     payload = {"video_name": f"{video_name}.mp4"}
-    response_video = requests.post(get_video_api_url, json=payload, headers=headers)
-    response_video.raise_for_status()
 
-    print("Response video: ", response_video)
-    print("Response video: ", response_video.json())
+    max_retries = 3
+    backoff_base = 5  # seconds
 
-    video_data = response_video.json()  # por ejemplo: {'url': 'http://...'}
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"GET_VIDEO URL attempt {attempt}: {get_video_api_url}")
+            response_video = requests.post(get_video_api_url, json=payload, headers=headers, timeout=10)
+            response_video.raise_for_status()
+            video_data = response_video.json()
 
+            # Retry if response is empty or missing 'url'
+            if not video_data or 'url' not in video_data or not video_data['url']:
+                raise ValueError("Empty or invalid response")
+
+            print("Video data received:", video_data)
+            break  # Success
+        except (requests.RequestException, ValueError) as e:
+            print(f"[Attempt {attempt}] Error fetching video URL: {e}")
+            if attempt == max_retries:
+                raise
+            sleep_time = backoff_base ** attempt
+            print(f"Retrying in {sleep_time} seconds...")
+            time.sleep(sleep_time)
+
+    # Merge and send to MongoDB
     data.update(video_data)
+    print("Posting to Mongo URL:", url)
+    print("Data:", data)
 
-    print("video_url:", video_data)
-    print("posting to url:", url)
-    print("Data to post:", data)
-
-    # Segundo POST para guardar el video en Mongo
     response = requests.post(url, json=data, headers=headers)
     response.raise_for_status()
     return response
-

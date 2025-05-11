@@ -190,7 +190,7 @@ def main():
             url = f"{API_GATEWAY_URL}add-video"
             
             print("la url a postear es: ", API_GATEWAY_URL)
-
+            
             add_video_mongo(url, message.to_dict(), message.get_video_name())
 
             
