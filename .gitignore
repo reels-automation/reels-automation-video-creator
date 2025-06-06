@@ -1,4 +1,7 @@
-# Ignore all audio files
+.env
+.env.production
+.env.dev
+
 *.mp3
 *.wav
 *.flac
@@ -32,8 +35,6 @@
 *.json
 .tmp.driveupload
 .tmp.drivedownload
-*.env
-
 
 # Optional: Ignore audio and video files in nested folders
 **/*.mp3

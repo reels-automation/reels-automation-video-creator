@@ -2,16 +2,21 @@ import os
 from minio import Minio
 from minio.error import S3Error
 from file_getter.file_getter import FileGetter
-from settings import MINIO_URL
+from settings import MINIO_URL, SECURE
 
 class MinioFileGetter(FileGetter):
+    if SECURE == "False":
+        secure = False
+    else:
+        secure = True
+    
     def __init__(self):
         self.temp_folder = "temp_storage_minio"
         self.minio_client = Minio(
         MINIO_URL,
         access_key="AKIAIOSFODNN7EXAMPLE",
         secret_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-        secure=True
+        secure=self.secure
         )
 
     def list_objects(self, bucket_name:str):
