@@ -122,9 +122,9 @@ def main():
         if message.get_pth_voice() == "":
             image_directory = "peter_griffin"
             message.set_pth_voice("homero")
-        elif message.get_pth_voice() == "HOMERO SIMPSON LATINO":
+        elif message.get_pth_voice() == "homero":
             image_directory = "peter_griffin"
-        elif message.get_pth_voice() == "PETER GRIFFIN":
+        elif message.get_pth_voice() == "peter_griffin":
             image_directory = "peter_griffin"
         
         #image_directory = f"temp_images/{message.get_pth_voice()}"
