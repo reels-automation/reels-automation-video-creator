@@ -120,13 +120,18 @@ def main():
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
         #Get Image
         if message.get_pth_voice() == "":
-            message.set_pth_voice("HOMERO SIMPSON LATINO") 
+            image_directory = "peter_griffin"
+            message.set_pth_voice("homero")
+        elif message.get_pth_voice() == "HOMERO SIMPSON LATINO":
+            image_directory = "peter_griffin"
+        elif message.get_pth_voice() == "PETER GRIFFIN":
+            image_directory = "peter_griffin"
         
-        image_directory = f"temp_images/{message.get_pth_voice()}"
+        #image_directory = f"temp_images/{message.get_pth_voice()}"
 
-        images_from_dir = os.listdir(image_directory)
+        #images_from_dir = os.listdir(image_directory)
 
-        print("image dir :", images_from_dir)
+        #print("image dir :", images_from_dir)
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
 
         #--------------------------------------------[OTRA FUNCION]-------------------------------------------------
@@ -143,14 +148,14 @@ def main():
             clips.append(rendered_video)
             
             character_images = image_handler.create_random_images(amount_of_images, 
-                                                                file_getter_factory.create_file_getter(file_getter_factory.LOCAL_FOLDER),
+                                                                file_getter_factory.create_file_getter(file_getter_factory.PUBLIC_MINIO),
                                                                 image_directory,
                                                                 audio.duration,
                                                                 rendered_video.size
                                                                 )
             
             for custom_image in character_images:
-                rendered_image = render_image_factory.render_image(render_image_factory.RANDOM, custom_image,rendered_video.size)
+                rendered_image = render_image_factory.render_image(render_image_factory.NO_ANIMATION, custom_image,rendered_video.size)
                 clips.append(rendered_image)
         else:
             print("imagenes no son random")
