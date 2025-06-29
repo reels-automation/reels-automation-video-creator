@@ -121,7 +121,7 @@ def main():
         #Get Image
         
         if message.get_pth_voice() == "homero":
-            image_directory = "peter_griffin"
+            image_directory = "homero"
         elif message.get_pth_voice() == "peter_griffin":
             image_directory = "peter_griffin"
         else:
@@ -159,6 +159,7 @@ def main():
             for custom_image in character_images:
                 rendered_image = render_image_factory.render_image(render_image_factory.NO_ANIMATION, custom_image,rendered_video.size)
                 clips.append(rendered_image)
+        
         else:
             print("imagenes no son random")
 

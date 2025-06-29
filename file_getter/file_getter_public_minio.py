@@ -12,7 +12,8 @@ class FileGetterPublicMinio(FileGetter):
 
     def get_random_file(self, character_name:str):
         try:
-            url = f"http://{self.api}/random-image/{character_name}"
+            url = f"{self.api}/random-image/{character_name}"
+            print("url: ", url)
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()

@@ -1,0 +1,30 @@
+services:
+  video-creator:
+    build: .
+    networks:
+      - local-kafka
+      - minio-network
+      - minio-admin-files
+      - api-gateway
+    environment:
+      KAFKA_BROKER: ${KAFKA_BROKER}
+      KAFKA_BROKER_DOCKER: ${KAFKA_BROKER_DOCKER}
+      API_GATEWAY_URL: ${API_GATEWAY_URL}
+      MINIO_URL: ${MINIO_URL}
+      SECURE: ${SECURE}
+      ENVIRONMENT: ${ENVIRONMENT}
+      ADMIN_API: ${ADMIN_API}
+    stdin_open: true   
+    tty: true
+    restart: unless-stopped
+
+networks:
+  local-kafka:
+    external: true
+  minio-network:
+    external: true
+  minio-admin-files:
+    external: true
+  api-gateway:
+    external: true
+
