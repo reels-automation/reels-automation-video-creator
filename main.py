@@ -17,7 +17,7 @@ from kafka.consumer import create_consumer
 from keyword_extractor.yake_extractor import extract_keywords, find_keyword_in_json
 from gif_searcher.tenor_searcher import TenorSearcher
 from gif_searcher.giphy_searcher import GiphySearcher
-from utils.utils import get_keywords, clean_filename
+from utils.utils import get_keywords, clean_filename, create_folders
 from settings import ROOT_DIR, KAFKA_BROKER, API_GATEWAY_URL
 from message.message import MessageBuilder
 from video_creator.render_image.render_image_factory import RenderImageFactory
@@ -51,7 +51,7 @@ def get_subtitles(subtitles_json:dict, video_width:int, video_height:int, video_
             clips.append(rendered_subtitle)
 
 def main():
-    
+    create_folders()
     video_director = VideoDirector()
     file_getter_factory = FileGetterFactory()
     video_creator = MoviePyVideoCreator()

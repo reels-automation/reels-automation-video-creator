@@ -103,3 +103,9 @@ def clean_filename(filename):
     filename = re.sub(r'[<>:"/\\|?*,()\[\]]', ' ', filename)
     filename = ' '.join(filename.split())
     return filename
+
+def create_folders():
+    folders = ['./temp_vids', './temp_storage_web', './temp_storage_minio_public', './temp_storage_minio','./temp_images'  ]
+
+    for folder in folders:
+        os.makedirs(folder, exist_ok=True)
