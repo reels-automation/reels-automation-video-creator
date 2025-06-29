@@ -25,8 +25,6 @@ class FileGetterPublicMinio(FileGetter):
                 f.write(file_response.content)
             return local_path
         except Exception as ex:
-            raise ValueError(f"Error al obtener un archivo random: {ex}")
-
-
+            print(f"Error al obtener un archivo random: {ex}")
     
     
