@@ -14,6 +14,8 @@ services:
       SECURE: ${SECURE}
       ENVIRONMENT: ${ENVIRONMENT}
       ADMIN_API: ${ADMIN_API}
+      PUBLIC_MINIO_ACCESS_KEY: ${PUBLIC_MINIO_ACCESS_KEY}
+      PUBLIC_MINIO_SECRET_KEY: ${PUBLIC_MINIO_SECRET_KEY}
     stdin_open: true   
     tty: true
     restart: unless-stopped
